@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mascot & Developer Hub</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --text: #f8fafc;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: fit-content;
+        }
+
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #475569;
+            padding-bottom: 10px;
+        }
+
+        .nav-btn {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            width: auto;
+        }
+
+        .nav-btn:hover { background: #64748b; }
+
+        #secretDevBtn {
+            display: none;
+            background: var(--warning);
+            color: #000;
+            font-weight: bold;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.7; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+
+        .page { display: none; }
+        .page.active { display: flex; flex-direction: column; gap: 20px; }
+
+        .mascot-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+            border-radius: 12px;
+            background: #334155;
+        }
+
+        .mascot-name-badge {
+            background: #0f172a;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            border: 1px solid #475569;
+        }
+
+        .mascot-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            background: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        .speech-bubble {
+            margin-top: 15px;
+            background: #475569;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            text-align: center;
+            max-width: 90%;
+            min-height: 24px;
+        }
+
+        .joy-anim { border-color: var(--accent); animation: bounce 0.5s infinite alternate; }
+        .confused-anim { transform: rotate(-5deg); }
+        .angry-anim-1 { border-color: #f97316; }
+        .angry-anim-2 { border-color: #ef4444; animation: shake 0.3s infinite; }
+        .angry-anim-3 { border-color: #991b1b; animation: shake 0.1s infinite; transform: scale(1.05); }
+        .banned-anim { border-color: #7f1d1d; filter: grayscale(80%); }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            50% { transform: translateX(4px); }
+            75% { transform: translateX(-4px); }
+            100% { transform: translateX(0); }
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: var(--text);
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+
+        input:disabled, button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button {
+            background: var(--primary);
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover:not(:disabled) { background: #2563eb; }
+
+        .ban-banner {
+            display: none;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .section {
+            border-top: 1px solid #475569;
+            padding-top: 12px;
+        }
+
+        .history-list {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .dev-section-box {
+            background: #111827;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            margin-bottom: 12px;
+        }
+
+        .dev-section-box h4 {
+            margin-top: 0;
+            color: #60a5fa;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 5px;
+        }
+
+        .filtered-item {
+            background: #1f2937;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-size: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        .priority-high { border-left-color: var(--danger); }
+
+        .kb-item-card {
+            background: #1f2937;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ss-auth-box {
+            display: none; /* Скрыто по умолчанию, пока не введут секретную фразу СС */
+            background: #1e293b;
+            border: 1px dashed var(--warning);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-nav">
+        <h3 id="appTitle">🤖 AI User Space</h3>
+        <div>
+            <button id="secretDevBtn" class="nav-btn" onclick="openDevAuth()">⚙️ Панель разработчика</button>
+        </div>
+    </div>
+
+    <!-- ПОЛЬЗОВАТЕЛЬСКАЯ СТРАНИЦА -->
+    <div id="userPage" class="page active">
+        <div class="mascot-box">
+            <div class="mascot-name-badge">Имя: <b id="displayMascotName">Ассистент</b></div>
+            <img id="mascotImg" src="neutral.png" alt="Mascot" class="mascot-avatar" onerror="this.src='https://via.placeholder.com/110?text=AI'">
+            <div class="speech-bubble" id="speechBubble">Привет! Задай мне вопрос или поделись идеей.</div>
+        </div>
+
+        <div id="banBanner" class="ban-banner">
+            ⛔ Вы заблокированы за грубость или неуважение. До разблокировки: <b id="banTimer">30:00</b>
+        </div>
+
+        <div class="section">
+            <label><b>Задать вопрос ИИ:</b></label>
+            <input type="text" id="userInput" placeholder="Напишите ваш вопрос..." onkeypress="if(event.key==='Enter') askAI()">
+            <button id="askBtn" onclick="askAI()">Спросить</button>
+        </div>
+
+        <!-- Секретный блок авторизации для членов Студсовета (появляется по кодовому слову) -->
+        <div id="ssAuthContainer" class="section ss-auth-box">
+            <label style="font-size: 13px; color: var(--warning);"><b>🔐 Вход для членов Студсовета (СС):</b></label>
+            <div id="ssAuthStatus" style="font-size: 12px; color: #94a3b8; margin: 5px 0;">Статус: Не авторизован</div>
+            <div id="ssLoginForm">
+                <input type="text" id="ssUserLogin" placeholder="Логин члена СС..." style="font-size: 13px; padding: 6px;">
+                <input type="password" id="ssUserPass" placeholder="Пароль СС..." style="font-size: 13px; padding: 6px; margin-top: 5px;">
+                <button onclick="loginStudentCouncil()" style="background: var(--warning); color: #000; font-size: 13px; padding: 6px; margin-top: 5px;">Войти в СС</button>
+            </div>
+            <div id="ssLogoutForm" style="display: none;">
+                <button onclick="logoutStudentCouncil()" style="background: var(--danger); font-size: 12px; padding: 5px;">Выйти из аккаунта СС</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <label><b>Отправить идею, проблему или вопрос разработчику:</b></label>
+            <select id="feedbackType">
+                <option value="идея">💡 Идея</option>
+                <option value="проблема">⚠️ Проблема / Баг</option>
+                <option value="вопрос">❓ Вопрос разработчику</option>
+            </select>
+            <textarea id="userFeedback" placeholder="Опишите вашу идею или проблему подробно..." style="margin-top: 5px;"></textarea>
+            <button onclick="sendUserFeedback()" style="background: var(--accent); margin-top: 5px;">Отправить разработчику</button>
+        </div>
+
+        <div class="section">
+            <label><b>История поиска:</b></label>
+            <div class="history-list" id="historyList"></div>
+            <button onclick="clearHistory()" style="background: #64748b; font-size: 11px; padding: 4px; margin-top: 5px;">Очистить историю</button>
+        </div>
+    </div>
+
+    <!-- СТРАНИЦА РАЗРАБОТЧИКА -->
+    <div id="devPage" class="page">
+        <h3>🔐 Панель Разработчика</h3>
+        <div id="devAuthBox">
+            <p style="font-size: 13px; color: #94a3b8;">Введите пароль разработчика (по умолчанию: <code>dev2026</code>):</p>
+            <input type="password" id="devPasswordInput" placeholder="Пароль...">
+            <button onclick="checkDevPassword()" style="margin-top: 8px;">Войти</button>
+            <button onclick="switchPage('user')" style="background: #64748b; margin-top: 5px;">Назад</button>
+        </div>
+
+        <div id="devContentBox" style="display: none;">
+            <button onclick="switchPage('user')" style="background: #64748b; margin-bottom: 15px; font-size: 12px;">⬅️ Вернуться на пользовательскую страницу</button>
+
+            <!-- СТРОКА 0: Управление паролями Студсовета -->
+            <div class="dev-section-box">
+                <h4>👥 1. Управление пользователями и паролями СС</h4>
+                <p style="font-size: 12px; color: #94a3b8; margin-top: 0;">Создавайте логины и пароли для членов Студсовета.</p>
+                <input type="text" id="newSsLogin" placeholder="Логин члена СС (например: ivan_ss)">
+                <input type="text" id="newSsPass" placeholder="Пароль для него..." style="margin-top: 5px;">
+                <button onclick="addStudentCouncilUser()" style="margin-top: 8px; background: var(--warning); color: #000;">Добавить / Изменить пользователя СС</button>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 12px; color: #94a3b8;">Список доступов СС:</label>
+                    <div id="ssUsersListContainer" style="max-height: 120px; overflow-y: auto; margin-top: 5px;"></div>
+                </div>
+            </div>
+
+            <!-- СТРОКА 1: Имя маскота -->
+            <div class="dev-section-box">
+                <h4>🏷️ 2. Имя Маскота</h4>
+                <input type="text" id="mascotNameInput" placeholder="Введите имя маскота...">
+                <button onclick="updateMascotName()" style="margin-top: 8px;">Сохранить имя</button>
+            </div>
+
+            <!-- СТРОКА 2: Архив знаний -->
+            <div class="dev-section-box">
+                <h4>📁 3. Архив знаний (Папки: Общая, Студсовет общ, Студенческий совет ответы)</h4>
+                <select id="kbFolderSelect">
+                    <option value="Общая">📁 Общая</option>
+                    <option value="Студсовет общ">📁 Студсовет общ</option>
+                    <option value="Студенческий совет ответы">🔐 Студенческий совет ответы (Только для СС)</option>
+                </select>
+                <input type="text" id="kbSubcategory" placeholder="Подкатегория (например: Расписание)">
+                <input type="text" id="kbKeyword" placeholder="Ключевое слово / Вопрос">
+                <textarea id="kbAnswer" placeholder="Ответ, который будет выдавать ИИ..." style="margin-top: 5px;"></textarea>
+                <button onclick="addNewKnowledge()" style="margin-top: 8px;">Сохранить запись в папку</button>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 12px; color: #94a3b8;">Записи в архиве:</label>
+                    <div id="kbListContainer" style="max-height: 150px; overflow-y: auto; margin-top: 5px;"></div>
+                </div>
+            </div>
+
+            <!-- СТРОКА 3: Настройка реплик -->
+            <div class="dev-section-box">
+                <h4>🎨 4. Настройка реплик Маскота</h4>
+                <select id="mascotEmotionSelect">
+                    <option value="neutral">Нейтральный (Neutral)</option>
+                    <option value="joy">Радость (Joy)</option>
+                    <option value="confused">Недопонимание (Confused)</option>
+                    <option value="angry-1">Злость Уровень 1</option>
+                    <option value="angry-2">Злость Уровень 2</option>
+                    <option value="angry-3">Злость Уровень 3</option>
+                    <option value="banned">Бан (30 мин)</option>
+                </select>
+                <input type="text" id="mascotCustomText" placeholder="Новая реплика для этой эмоции" style="margin-top: 5px;">
+                <button onclick="updateMascotConfig()" style="margin-top: 8px;">Обновить реплику</button>
+            </div>
+
+            <!-- СТРОКА 4: Аналитика отзывов -->
+            <div class="dev-section-box">
+                <h4>📊 5. Аналитика отзывов пользователей</h4>
+                <div style="margin-bottom: 10px;">
+                    <button onclick="renderAnalytics()" style="background: #2563eb; font-size: 12px; padding: 6px;">🔄 Обновить аналитику</button>
+                </div>
+                <div id="analyticsContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[tag] || tag));
+    }
+
+    let mascotName = localStorage.getItem('ai_mascot_name') || "Ассистент";
+    document.getElementById('displayMascotName').innerText = mascotName;
+
+    let ssUsers = JSON.parse(localStorage.getItem('ai_ss_users')) || {
+        "admin_ss": "ss2026",
+        "leader_ss": "council123"
+    };
+
+    let isSSLoggedIn = localStorage.getItem('ai_ss_logged_in') === 'true';
+    let currentSSUser = localStorage.getItem('ai_ss_current_user') || "";
+    let ssContainerUnlocked = localStorage.getItem('ai_ss_container_unlocked') === 'true';
+
+    let knowledgeBase = JSON.parse(localStorage.getItem('ai_kb_v8')) || {
+        "привет": { folder: "Общая", sub: "Приветствия", ans: "Привет! Чем я могу тебе помочь?" },
+        "стипендия": { folder: "Студсовет общ", sub: "Выплаты", ans: "Информация по стипендиям публикуется в разделе новостей вуза." },
+        "секретный бюджет сс": { folder: "Студенческий совет ответы", sub: "Финансы", ans: "⚠️ Внутренний отчет СС: бюджет распределен на мероприятия текущего семестра." }
+    };
+
+    let mascotPhrases = JSON.parse(localStorage.getItem('ai_mascot_config_v8')) || {
+        "neutral": "Привет! Задай мне вопрос или поделись идеей.",
+        "joy": "Огромное спасибо! Мне очень приятно слышать такие добрые слова! 🎉",
+        "confused": "Хм, я пока не знаю ответа на этот вопрос...",
+        "angry-1": "Мне не нравится такой тон, или ты назвал меня неправильно. Будь вежливее!",
+        "angry-2": "Это уже несколько нарушений! Прекрати грубить и обращайся ко мне правильно!",
+        "angry-3": "Моё терпение на исходе! Ещё одно нарушение — и я заблокирую доступ!",
+        "banned": "Всё, доступ закрыт на 30 минут. Остынь и научись вежливости! ⛔"
+    };
+
+    let history = [];
+    try {
+        const savedHistory = localStorage.getItem('ai_history_permanent_v4');
+        if (savedHistory) history = JSON.parse(savedHistory);
+    } catch (e) { history = []; }
+
+    let userFeedbackList = JSON.parse(localStorage.getItem('ai_feedback_v8')) || [];
+    let offenseCount = parseInt(localStorage.getItem('ai_offense_count')) || 0;
+    let banUntil = parseInt(localStorage.getItem('ai_ban_until')) || 0;
+    let secretUnlocked = false;
+    let banInterval = null;
+
+    const offensiveRoots = ["дурак", "тупой", "идиот", "дебил", "глуп", "бестолков", "отстой", "урод", "чушь", "бред", "заткнись", "ненавижу", "мусор", "хлам", "кретин", "придурок", "лох", "бесишь", "тупица", "болван", "нахрен", "блин", "черт"];
+    const politeAndComplimentWords = ["спасибо", "пожалуйста", "благодарю", "будь добр", "будьте добры", "молодец", "умный", "умница", "супер", "классный", "крутой", "лучший", "отличный", "прекрасный", "гений", "хороший", "милый", "помог"];
+    const alternativeNames = ["алиса", "сири", "маруся", "алекса", "олег", "джарвис", "бот", "робот", "железяка", "машина", "чатгпт", "chatgpt", "гугл", "яндекс", "эй ты"];
+
+    updateHistoryUI();
+    checkBanStatus();
+    updateSSAuthUI();
+
+    if (ssContainerUnlocked) {
+        document.getElementById('ssAuthContainer').style.display = 'block';
+    }
+
+    function checkBanStatus() {
+        const now = Date.now();
+        const banner = document.getElementById('banBanner');
+        const input = document.getElementById('userInput');
+        const btn = document.getElementById('askBtn');
+
+        if (banUntil > now) {
+            banner.style.display = 'block';
+            input.disabled = true;
+            btn.disabled = true;
+            setEmotion('banned');
+
+            if (banInterval) clearInterval(banInterval);
+            banInterval = setInterval(() => {
+                const remaining = banUntil - Date.now();
+                if (remaining <= 0) {
+                    clearInterval(banInterval);
+                    banUntil = 0;
+                    offenseCount = 0;
+                    localStorage.removeItem('ai_ban_until');
+                    localStorage.setItem('ai_offense_count', 0);
+                    banner.style.display = 'none';
+                    input.disabled = false;
+                    btn.disabled = false;
+                    setEmotion('neutral', 'Время блокировки истекло. Надеюсь, теперь мы поладим!');
+                } else {
+                    const mins = Math.floor(remaining / 60000);
+                    const secs = Math.floor((remaining % 60000) / 1000);
+                    document.getElementById('banTimer').innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                }
+            }, 1000);
+        } else {
+            banner.style.display = 'none';
+            input.disabled = false;
+            btn.disabled = false;
+        }
+    }
+
+    function loginStudentCouncil() {
+        const login = document.getElementById('ssUserLogin').value.trim();
+        const pass = document.getElementById('ssUserPass').value.trim();
+
+        if (ssUsers[login] && ssUsers[login] === pass) {
+            isSSLoggedIn = true;
+            currentSSUser = login;
+            localStorage.setItem('ai_ss_logged_in', 'true');
+            localStorage.setItem('ai_ss_current_user', login);
+            updateSSAuthUI();
+            alert(`Успешный вход в СС под логином: ${login}`);
+            document.getElementById('ssUserLogin').value = "";
+            document.getElementById('ssUserPass').value = "";
+        } else {
+            alert('Неверный логин или пароль члена СС!');
+        }
+    }
+
+    function logoutStudentCouncil() {
+        isSSLoggedIn = false;
+        currentSSUser = "";
+        localStorage.removeItem('ai_ss_logged_in');
+        localStorage.removeItem('ai_ss_current_user');
+        updateSSAuthUI();
+        alert('Вы вышли из аккаунта Студсовета.');
+    }
+
+    function updateSSAuthUI() {
+        const statusDiv = document.getElementById('ssAuthStatus');
+        const loginForm = document.getElementById('ssLoginForm');
+        const logoutForm = document.getElementById('ssLogoutForm');
+
+        if (isSSLoggedIn) {
+            statusDiv.innerHTML = `Статус: <b style="color: var(--accent);">Авторизован как член СС (${currentSSUser})</b>. Доступ к закрытой папке открыт.`;
+            loginForm.style.display = 'none';
+            logoutForm.style.display = 'block';
+        } else {
+            statusDiv.innerHTML = `Статус: <span style="color: #94a3b8;">Не авторизован</span>`;
+            loginForm.style.display = 'block';
+            logoutForm.style.display = 'none';
+        }
+    }
+
+    function addStudentCouncilUser() {
+        const login = document.getElementById('newSsLogin').value.trim();
+        const pass = document.getElementById('newSsPass').value.trim();
+
+        if (!login || !pass) {
+            alert('Введите логин и пароль для СС!');
+            return;
+        }
+
+        ssUsers[login] = pass;
+        localStorage.setItem('ai_ss_users', JSON.stringify(ssUsers));
+        alert(`Пользователь СС «${login}» успешно сохранен!`);
+        document.getElementById('newSsLogin').value = "";
+        document.getElementById('newSsPass').value = "";
+        renderSsUsersList();
+    }
+
+    function deleteSsUser(login) {
+        if (confirm(`Удалить доступ для пользователя ${login}?`)) {
+            delete ssUsers[login];
+            localStorage.setItem('ai_ss_users', JSON.stringify(ssUsers));
+            renderSsUsersList();
+        }
+    }
+
+    function renderSsUsersList() {
+        const container = document.getElementById('ssUsersListContainer');
+        let keys = Object.keys(ssUsers);
+        if (keys.length === 0) {
+            container.innerHTML = `<div style="font-size:11px; color:#94a3b8;">Нет зарегистрированных пользователей СС.</div>`;
+            return;
+        }
+
+        let html = "";
+        keys.forEach(login => {
+            html += `<div class="kb-item-card">
+                <div>👤 <b>${escapeHTML(login)}</b> (Пароль: <code>${escapeHTML(ssUsers[login])}</code>)</div>
+                <button onclick="deleteSsUser('${escapeHTML(login)}')" style="width: auto; padding: 2px 6px; font-size: 10px; background: var(--danger);">Удалить</button>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function detectOffense(query) {
+        if (offensiveRoots.some(root => query.includes(root))) return true;
+        const currentNameLower = mascotName.toLowerCase();
+        if (!query.includes(currentNameLower)) {
+            return alternativeNames.some(alt => {
+                const regex = new RegExp(`(^|\\s|,|!|\\?)${alt}($|\\s|,|!|\\?)`, 'i');
+                return regex.test(query);
+            });
+        }
+        return false;
+    }
+
+    function detectPolitenessOrCompliment(query) {
+        return politeAndComplimentWords.some(word => query.includes(word));
+    }
+
+    function askAI() {
+        if (banUntil > Date.now()) return;
+
+        const input = document.getElementById('userInput');
+        const rawText = input.value.trim();
+        const query = rawText.toLowerCase();
+        if (!query) return;
+
+        // 1. Секретный код для панели разработчика
+        if (query.includes("когда триумф восхода луны")) {
+            secretUnlocked = true;
+            document.getElementById('secretDevBtn').style.display = 'inline-block';
+            setEmotion('joy', 'Секретный код принят! Панель разработчика разблокирована вверху.');
+            input.value = "";
+            return;
+        }
+
+        // 2. Секретный запрос для появления блока входа Студсовета
+        if (query.includes("папка indigo студ совет")) {
+            ssContainerUnlocked = true;
+            localStorage.setItem('ai_ss_container_unlocked', 'true');
+            document.getElementById('ssAuthContainer').style.display = 'block';
+            setEmotion('joy', 'Доступ к форме авторизации Студсовета активирован ниже!');
+            input.value = "";
+            return;
+        }
+
+        if (detectOffense(query)) {
+            offenseCount++;
+            localStorage.setItem('ai_offense_count', offenseCount);
+
+            if (offenseCount >= 5) {
+                banUntil = Date.now() + 30 * 60 * 1000;
+                localStorage.setItem('ai_ban_until', banUntil);
+                checkBanStatus();
+            } else if (offenseCount >= 3) {
+                setEmotion('angry-2');
+            } else {
+                setEmotion('angry-1');
+            }
+        } else {
+            let foundKey = Object.keys(knowledgeBase).find(key => query.includes(key));
+            let isPolite = detectPolitenessOrCompliment(query);
+
+            if (foundKey) {
+                let item = knowledgeBase[foundKey];
+                if (item.folder === "Студенческий совет ответы" && !isSSLoggedIn) {
+                    setEmotion('confused', '🔒 Эта информация находится в закрытой папке Студсовета. Введите пароль СС для доступа.');
+                } else {
+                    if (isPolite) {
+                        setEmotion('joy', `${item.ans} (И спасибо за вежливость! 😊)`);
+                    } else {
+                        setEmotion('neutral', item.ans);
+                    }
+                }
+            } else if (isPolite) {
+                setEmotion('joy');
+            } else {
+                setEmotion('confused');
+            }
+        }
+
+        history.unshift(`Вопрос: ${escapeHTML(rawText)}`);
+        if (history.length > 100) history.pop();
+        try { localStorage.setItem('ai_history_permanent_v4', JSON.stringify(history)); } catch (e) {}
+
+        updateHistoryUI();
+        input.value = "";
+    }
+
+    function switchPage(pageName) {
+        if (pageName === 'dev' && !secretUnlocked) return;
+
+        document.getElementById('userPage').classList.remove('active');
+        document.getElementById('devPage').classList.remove('active');
+        
+        if (pageName === 'user') {
+            document.getElementById('userPage').classList.add('active');
+            document.getElementById('appTitle').innerText = "🤖 AI User Space";
+        } else if (pageName === 'dev') {
+            document.getElementById('devPage').classList.add('active');
+            document.getElementById('appTitle').innerText = "⚙️ Dev Hub";
+            document.getElementById('mascotNameInput').value = mascotName;
+            renderKbList();
+            renderSsUsersList();
+        }
+    }
+
+    function openDevAuth() { if (secretUnlocked) switchPage('dev'); }
+
+    function checkDevPassword() {
+        const pass = document.getElementById('devPasswordInput').value;
+        if (pass === "dev2026") {
+            document.getElementById('devAuthBox').style.display = 'none';
+            document.getElementById('devContentBox').style.display = 'block';
+            document.getElementById('devPasswordInput').value = '';
+            renderAnalytics();
+            renderKbList();
+            renderSsUsersList();
+        } else {
+            alert('Неверный пароль!');
+        }
+    }
+
+    function setEmotion(state, customMessage = "") {
+        const img = document.getElementById('mascotImg');
+        const bubble = document.getElementById('speechBubble');
+        
+        let message = customMessage || mascotPhrases[state] || "Обработка...";
+        bubble.innerText = message;
+        speakText(message);
+
+        img.className = "mascot-avatar";
+        if (state === 'joy') img.classList.add('joy-anim');
+        else if (state === 'confused') img.classList.add('confused-anim');
+        else if (state === 'angry-1') img.classList.add('angry-anim-1');
+        else if (state === 'angry-2') img.classList.add('angry-anim-2');
+        else if (state === 'angry-3') img.classList.add('angry-anim-3');
+        else if (state === 'banned') img.classList.add('banned-anim');
+    }
+
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ru-RU';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function updateMascotName() {
+        const newName = document.getElementById('mascotNameInput').value.trim();
+        if (!newName) { alert('Имя не может быть пустым!'); return; }
+        mascotName = newName;
+        localStorage.setItem('ai_mascot_name', mascotName);
+        document.getElementById('displayMascotName').innerText = mascotName;
+        alert(`Имя маскота успешно обновлено на «${mascotName}»!`);
+    }
+
+    function sendUserFeedback() {
+        const type = document.getElementById('feedbackType').value;
+        const text = document.getElementById('userFeedback').value.trim();
+        if (!text) { alert('Поле не должно быть пустым!'); return; }
+
+        let priority = "низкий";
+        if (type === 'проблема') {
+            if (text.toLowerCase().includes('критич') || text.toLowerCase().includes('не работает') || text.toLowerCase().includes('ошибка')) {
+                priority = "высокий";
+            } else { priority = "средний"; }
+        }
+
+        userFeedbackList.push({ type, text, priority, time: new Date().toLocaleTimeString() });
+        localStorage.setItem('ai_feedback_v8', JSON.stringify(userFeedbackList));
+        setEmotion('joy', 'Спасибо! Твоё сообщение успешно отправлено разработчику.');
+        document.getElementById('userFeedback').value = "";
+    }
+
+    function updateHistoryUI() {
+        const list = document.getElementById('historyList');
+        if (!list) return;
+        if (history.length === 0) {
+            list.innerHTML = `<div style="color: #64748b; font-size: 12px;">История пуста</div>`;
+            return;
+        }
+        list.innerHTML = history.map(item => `<div>• ${item}</div>`).join('');
+    }
+
+    function clearHistory() {
+        if (confirm("Вы уверены, что хотите полностью удалить историю поиска?")) {
+            history = [];
+            localStorage.removeItem('ai_history_permanent_v4');
+            updateHistoryUI();
+        }
+    }
+
+    function addNewKnowledge() {
+        const folder = document.getElementById('kbFolderSelect').value;
+        const sub = document.getElementById('kbSubcategory').value.trim();
+        const keyword = document.getElementById('kbKeyword').value.trim().toLowerCase();
+        const ans = document.getElementById('kbAnswer').value.trim();
+
+        if (!keyword || !ans) {
+            alert('Заполните ключевое слово и ответ!');
+            return;
+        }
+
+        knowledgeBase[keyword] = { folder, sub, ans };
+        localStorage.setItem('ai_kb_v8', JSON.stringify(knowledgeBase));
+        alert('Запись успешно сохранена в архив!');
+        
+        document.getElementById('kbSubcategory').value = "";
+        document.getElementById('kbKeyword').value = "";
+        document.getElementById('kbAnswer').value = "";
+        renderKbList();
+    }
+
+    function deleteKbItem(key) {
+        if (confirm(`Удалить запись «${key}» из архива?`)) {
+            delete knowledgeBase[key];
+            localStorage.setItem('ai_kb_v8', JSON.stringify(knowledgeBase));
+            renderKbList();
+        }
+    }
+
+    function renderKbList() {
+        const container = document.getElementById('kbListContainer');
+        let keys = Object.keys(knowledgeBase);
+        if (keys.length === 0) {
+            container.innerHTML = `<div style="font-size:11px; color:#94a3b8;">Архив пуст.</div>`;
+            return;
+        }
+
+        let html = "";
+        keys.forEach(key => {
+            let item = knowledgeBase[key];
+            let folderBadge = item.folder === "Студенческий совет ответы" ? "🔐 [СС Ответы]" : `📁 [${item.folder}]`;
+            html += `<div class="kb-item-card">
+                <div><b>${folderBadge}</b> ${escapeHTML(key)}</div>
+                <button onclick="deleteKbItem('${escapeHTML(key)}')" style="width: auto; padding: 3px 6px; font-size: 10px; background: var(--danger);">Удалить</button>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function updateMascotConfig() {
+        const emotion = document.getElementById('mascotEmotionSelect').value;
+        const customText = document.getElementById('mascotCustomText').value.trim();
+        
+        if (customText) {
+            mascotPhrases[emotion] = customText;
+            localStorage.setItem('ai_mascot_config_v8', JSON.stringify(mascotPhrases));
+            alert('Реплика маскота обновлена!');
+            document.getElementById('mascotCustomText').value = "";
+        } else { alert('Введите текст реплики.'); }
+    }
+
+    function renderAnalytics() {
+        const container = document.getElementById('analyticsContainer');
+        if (userFeedbackList.length === 0) {
+            container.innerHTML = `<div style="font-size:12px; color:#94a3b8;">Пока нет входящих сообщений.</div>`;
+            return;
+        }
+
+        let ideas = userFeedbackList.filter(item => item.type === 'идея');
+        let questions = userFeedbackList.filter(item => item.type === 'вопрос');
+        let problems = userFeedbackList.filter(item => item.type === 'проблема');
+
+        const priorityWeight = { "высокий": 3, "средний": 2, "низкий": 1 };
+        problems.sort((a, b) => priorityWeight[b.priority] - priorityWeight[a.priority]);
+
+        let html = `<div><b>💡 Идеи (${ideas.length}):</b></div>`;
+        ideas.forEach(i => { html += `<div class="filtered-item">🔸 ${escapeHTML(i.text)}</div>`; });
+
+        html += `<div style="margin-top:10px;"><b>⚠️ Проблемы:</b></div>`;
+        problems.forEach(p => {
+            let pClass = p.priority === 'высокий' ? 'priority-high' : '';
+            html += `<div class="filtered-item ${pClass}">⚠️ [Приоритет: <b>${p.priority.toUpperCase()}</b>] ${escapeHTML(p.text)}</div>`;
+        });
+
+        html += `<div style="margin-top:10px;"><b>❓ Вопросы (${questions.length}):</b></div>`;
+        questions.forEach(q => { html += `<div class="filtered-item">❓ ${escapeHTML(q.text)}</div>`; });
+
+        container.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>
